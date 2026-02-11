@@ -7,7 +7,7 @@ type NodeConnections struct {
 	Outputs []NetID
 }
 
-func getNodeConnections(nl NetList) []NodeConnections {
+func GetNodeConnections(nl NetList) []NodeConnections {
 	conns := make([]NodeConnections, len(nl.Nodes))
 
 	for i, node := range nl.Nodes {
@@ -19,8 +19,8 @@ func getNodeConnections(nl NetList) []NodeConnections {
 	return conns
 }
 
-func buildDependencyGraph(nl NetList) ([][]NodeID, []int) {
-	conns := getNodeConnections(nl)
+func BuildDependencyGraph(nl NetList) ([][]NodeID, []int) {
+	conns := GetNodeConnections(nl)
 	n := len(nl.Nodes)
 
 	netDrivers := make([][]NodeID, len(nl.Nets))
@@ -53,7 +53,7 @@ func buildDependencyGraph(nl NetList) ([][]NodeID, []int) {
 }
 
 func CreateEvalOrder(nl NetList) []NodeID {
-	dependencies, indegrees := buildDependencyGraph(nl)
+	dependencies, indegrees := BuildDependencyGraph(nl)
 
 	order := make([]NodeID, 0, len(nl.Nodes))
 	readyQ := make([]NodeID, 0)

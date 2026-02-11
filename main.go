@@ -25,4 +25,6 @@ func main() {
 
 	fmt.Println("sum", probes["sum.out"])
 	fmt.Println("carry", probes["carry.out"])
+
+	fmt.Println(library.ToDOT(nl, library.SchematicOptions{ShowBusWidth: true}))
 }
