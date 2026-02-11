@@ -23,5 +23,6 @@ func main() {
 	simulator.Step()
 	probes := simulator.ReadProbes()
 
+	fmt.Println(probes)
 	fmt.Println("A+B=3+5:", probes["top.InputA"], "+", probes["top.InputB"], "=", probes["top.ripple.join.out"])
 }

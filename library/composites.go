@@ -84,7 +84,5 @@ func (b *Builder) RippleCarryAdder(inA, inB, cin sim.NetID, width uint8) (sum, c
 
 	sum = b.Join(outputs, width)
 
-	cout = b.AllocNamedNet(1, "cout")
-
-	return sum, cout
+	return sum, carry
 }
