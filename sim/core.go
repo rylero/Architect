@@ -31,13 +31,14 @@ type NodeIO interface {
 }
 
 type NetList struct {
-	Nets      []Net
-	Nodes     []Node
-	EvalOrder []NodeID
+	Nets       []Net
+	Nodes      []Node
+	EvalOrder  []NodeID
+	ProbeNames map[NetID]string
+	Probes     []Probe
 }
 
 type Simulator struct {
-	NL     *NetList
-	Cycle  uint64
-	Probes []Probe
+	NL    *NetList
+	Cycle uint64
 }

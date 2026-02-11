@@ -8,23 +8,20 @@ import (
 
 func main() {
 	b := library.NewBuilder()
+	b.EnterScope("top")
 
-	inputA := b.Input(sim.CreateValue("10010010"), 8)
-	inputB := b.Input(sim.CreateValue("11001001"), 8)
-	inputC := b.Input(sim.CreateValue("0"), 1)
+	inputA := b.Input(sim.CreateValue("10010010"), 8, "InputA")
+	inputB := b.Input(sim.CreateValue("11001001"), 8, "InputB")
+	inputC := b.Input(sim.CreateValue("0"), 1, "InputC")
 
-	sum, carry := b.RippleCarryAdder(inputA, inputB, inputC, 8)
+	b.RippleCarryAdder(inputA, inputB, inputC, 8)
 
 	nl := b.Build()
 
 	simulator := sim.Simulator{NL: nl}
-	simulator.Probes = []sim.Probe{{Loc: sum, Name: "sum.out"}, {Loc: carry, Name: "carry.out"}}
 
 	simulator.Step()
 	probes := simulator.ReadProbes()
 
-	fmt.Println("sum", probes["sum.out"])
-	fmt.Println("carry", probes["carry.out"])
-
-	fmt.Println(library.ToDOT(nl, library.SchematicOptions{ShowBusWidth: true}))
+	fmt.Println("A+B=3+5:", probes["top.InputA"], "+", probes["top.InputB"], "=", probes["top.ripple.join.out"])
 }

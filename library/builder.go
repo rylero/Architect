@@ -1,6 +1,10 @@
 package library
 
-import "architect/sim"
+import (
+	"architect/sim"
+	"fmt"
+	"strings"
+)
 
 /* Builder */
 
@@ -8,18 +12,37 @@ type Builder struct {
 	nl       *sim.NetList
 	nextNet  sim.NetID
 	nextNode sim.NodeID
+	scopes   []string
 }
 
 func NewBuilder() *Builder {
 	return &Builder{
 		nl: &sim.NetList{
-			Nets:      make([]sim.Net, 0),
-			Nodes:     make([]sim.Node, 0),
-			EvalOrder: make([]sim.NodeID, 0),
+			Nets:       make([]sim.Net, 0),
+			Nodes:      make([]sim.Node, 0),
+			EvalOrder:  make([]sim.NodeID, 0),
+			Probes:     make([]sim.Probe, 0),
+			ProbeNames: make(map[sim.NetID]string),
 		},
 		nextNet:  0,
 		nextNode: 0,
 	}
+}
+
+func (b *Builder) EnterScope(name string) {
+	b.scopes = append(b.scopes, name)
+}
+
+func (b *Builder) ExitScope() {
+	b.scopes = b.scopes[:len(b.scopes)-1]
+}
+
+func (b *Builder) AllocNamedNet(width uint8, localName string) sim.NetID {
+	id := b.AllocNet(width)
+	fullName := strings.Join(b.scopes, ".") + "." + localName
+	b.nl.ProbeNames[id] = fullName
+	b.nl.Probes = append(b.nl.Probes, sim.Probe{Loc: id, Name: fullName})
+	return id
 }
 
 func (b *Builder) AllocNet(width uint8) sim.NetID {
@@ -91,24 +114,36 @@ func (s *Split) Outputs() []sim.NetID { return s.Outs }
 func (j *Join) Inputs() []sim.NetID  { return j.Ins }
 func (j *Join) Outputs() []sim.NetID { return []sim.NetID{j.Out} }
 
-// Split: wide -> narrow slices
+// Scoped Split: wide bus → named slices
 func (b *Builder) Split(in sim.NetID, numOut uint8) []sim.NetID {
 	width := b.nl.Nets[in].Width
+	if width%numOut != 0 {
+		panic(fmt.Sprintf("Split: width %d %% %d != 0", width, numOut))
+	}
 	sliceWidth := width / numOut
+
+	b.EnterScope("split")
+	defer b.ExitScope()
+
 	outs := make([]sim.NetID, numOut)
 	for i := uint8(0); i < numOut; i++ {
-		outs[i] = b.AllocNet(sliceWidth)
+		outs[i] = b.AllocNamedNet(sliceWidth, fmt.Sprintf("out%d", i))
 	}
+
 	node := &Split{In: in, Outs: outs, Width: width, NumOut: numOut}
 	b.AddNode(node)
 	return outs
 }
 
-// Join: narrow slices -> wide
-func (b *Builder) Join(outs []sim.NetID, width uint8) sim.NetID {
-	numIn := uint8(len(outs))
-	out := b.AllocNet(width)
-	node := &Join{Ins: outs, Out: out, Width: width, NumIn: numIn}
+// Scoped Join: slices → wide bus
+func (b *Builder) Join(ins []sim.NetID, width uint8) sim.NetID {
+	b.EnterScope("join")
+	defer b.ExitScope()
+
+	out := b.AllocNamedNet(width, "out")
+	numIn := uint8(len(ins))
+
+	node := &Join{Ins: ins, Out: out, Width: width, NumIn: numIn}
 	b.AddNode(node)
 	return out
 }

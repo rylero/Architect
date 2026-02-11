@@ -1,6 +1,9 @@
 package library
 
-import "architect/sim"
+import (
+	"architect/sim"
+	"fmt"
+)
 
 /* Basic Composite Gates */
 
@@ -30,43 +33,58 @@ func (b *Builder) NOR(inA, inB sim.NetID, width uint8) sim.NetID {
 }
 
 /* Adder */
+func (b *Builder) HalfAdder(inA, inB sim.NetID, width uint8) (sum, carry sim.NetID) {
+	b.EnterScope("halfAdder")
+	defer b.ExitScope()
 
-func (b *Builder) HalfAdder(inA, inB sim.NetID) (sim.NetID, sim.NetID) {
-	xorOut := b.AllocNet(1)
-	andOut := b.AllocNet(1)
+	sum = b.AllocNamedNet(width, "sum")
+	carry = b.AllocNamedNet(width, "carry")
 
-	xorNode := &XOR{InA: inA, InB: inB, Out: xorOut}
+	xorNode := &XOR{InA: inA, InB: inB, Out: sum}
 	b.AddNode(xorNode)
 
-	andNode := &AND{InA: inA, InB: inB, Out: andOut}
+	andNode := &AND{InA: inA, InB: inB, Out: carry}
 	b.AddNode(andNode)
 
-	return xorOut, andOut
+	return sum, carry
 }
 
-func (b *Builder) FullAdder(inA, inB, inC sim.NetID) (sim.NetID, sim.NetID) {
-	abAdderSum, abAdderCarry := b.HalfAdder(inA, inB)
-	ccAdderSum, ccAdderCarry := b.HalfAdder(abAdderSum, inC)
+func (b *Builder) FullAdder(inA, inB, inC sim.NetID, width uint8) (sum, carry sim.NetID) {
+	b.EnterScope("fullAdder")
+	defer b.ExitScope()
 
-	carryOr := b.OR(abAdderCarry, ccAdderCarry, 1)
+	abSum, abCarry := b.HalfAdder(inA, inB, width)
+	ccSum, ccCarry := b.HalfAdder(abSum, inC, width)
 
-	return ccAdderSum, carryOr
+	carry = b.AllocNamedNet(width, "carry")
+	orNode := &OR{InA: abCarry, InB: ccCarry, Out: carry}
+	b.AddNode(orNode)
+
+	return ccSum, carry
 }
 
-func (b *Builder) RippleCarryAdder(inA, inB, inC sim.NetID, width uint8) (sim.NetID, sim.NetID) {
-	inputABits := b.Split(inA, width)
-	inputBBits := b.Split(inB, width)
-	carry := inC
+func (b *Builder) RippleCarryAdder(inA, inB, cin sim.NetID, width uint8) (sum, cout sim.NetID) {
+	b.EnterScope("ripple")
+	defer b.ExitScope()
+
+	aBits := b.Split(inA, width)
+	bBits := b.Split(inB, width)
+	carry := cin
 
 	outputs := make([]sim.NetID, width)
 
 	for i := uint8(0); i < width; i++ {
-		fullAdderSum, fullAdderCarry := b.FullAdder(inputABits[i], inputBBits[i], carry)
-		carry = fullAdderCarry
-		outputs[i] = fullAdderSum
+		b.EnterScope(fmt.Sprintf("%d", i))
+		faSum, faCarry := b.FullAdder(aBits[i], bBits[i], carry, 1)
+		b.ExitScope()
+
+		carry = faCarry
+		outputs[i] = faSum
 	}
 
-	output := b.Join(outputs, width)
+	sum = b.Join(outputs, width)
 
-	return output, carry
+	cout = b.AllocNamedNet(1, "cout")
+
+	return sum, cout
 }

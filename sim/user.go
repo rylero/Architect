@@ -2,13 +2,14 @@ package sim
 
 /* Input */
 type Input struct {
-	Out NetID
-	Val Value
+	Out   NetID
+	Val   Value
+	Width uint8
 }
 
 func (g *Input) Eval(nets []Net) {
 	nets[g.Out].Val = g.Val
-	nets[g.Out].Width = 16
+	nets[g.Out].Width = g.Width
 }
 
 func (g *Input) Inputs() []NetID  { return nil }
