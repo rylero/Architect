@@ -9,11 +9,11 @@ import (
 func main() {
 	b := library.NewBuilder()
 
-	inputA := b.Input(sim.CreateValue("1"), 1)
-	inputB := b.Input(sim.CreateValue("1"), 1)
-	inputC := b.Input(sim.CreateValue("1"), 1)
+	inputA := b.Input(sim.CreateValue("10010010"), 8)
+	inputB := b.Input(sim.CreateValue("11001001"), 8)
+	inputC := b.Input(sim.CreateValue("0"), 1)
 
-	sum, carry := b.FullAdder(inputA, inputB, inputC)
+	sum, carry := b.RippleCarryAdder(inputA, inputB, inputC, 8)
 
 	nl := b.Build()
 

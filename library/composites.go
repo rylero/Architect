@@ -52,3 +52,21 @@ func (b *Builder) FullAdder(inA, inB, inC sim.NetID) (sim.NetID, sim.NetID) {
 
 	return ccAdderSum, carryOr
 }
+
+func (b *Builder) RippleCarryAdder(inA, inB, inC sim.NetID, width uint8) (sim.NetID, sim.NetID) {
+	inputABits := b.Split(inA, width)
+	inputBBits := b.Split(inB, width)
+	carry := inC
+
+	outputs := make([]sim.NetID, width)
+
+	for i := uint8(0); i < width; i++ {
+		fullAdderSum, fullAdderCarry := b.FullAdder(inputABits[i], inputBBits[i], carry)
+		carry = fullAdderCarry
+		outputs[i] = fullAdderSum
+	}
+
+	output := b.Join(outputs, width)
+
+	return output, carry
+}
