@@ -37,6 +37,15 @@ func (g *AND) Eval(nets []Net) {
 func (g *AND) Inputs() []NetID  { return []NetID{g.InA, g.InB} }
 func (g *AND) Outputs() []NetID { return []NetID{g.Out} }
 
+func (b *Builder) AND(inA, inB NetID, width uint8) NetID {
+	out := b.AllocNet(width)
+
+	node := &AND{InA: inA, InB: inB, Out: out}
+	b.AddNode(node)
+
+	return out
+}
+
 /* Not */
 
 type NOT struct {
@@ -70,6 +79,15 @@ func (g *NOT) Eval(nets []Net) {
 
 func (g *NOT) Inputs() []NetID  { return []NetID{g.In} }
 func (g *NOT) Outputs() []NetID { return []NetID{g.Out} }
+
+func (b *Builder) NOT(inA NetID, width uint8) NetID {
+	out := b.AllocNet(width)
+
+	node := &NOT{In: inA, Out: out}
+	b.AddNode(node)
+
+	return out
+}
 
 /* OR Gate */
 
@@ -106,6 +124,15 @@ func (g *OR) Eval(nets []Net) {
 func (g *OR) Inputs() []NetID  { return []NetID{g.InA, g.InB} }
 func (g *OR) Outputs() []NetID { return []NetID{g.Out} }
 
+func (b *Builder) OR(inA, inB NetID, width uint8) NetID {
+	out := b.AllocNet(width)
+
+	node := &OR{InA: inA, InB: inB, Out: out}
+	b.AddNode(node)
+
+	return out
+}
+
 /* XOR Gate */
 type XOR struct {
 	InA, InB NetID
@@ -139,3 +166,12 @@ func (g *XOR) Eval(nets []Net) {
 
 func (g *XOR) Inputs() []NetID  { return []NetID{g.InA, g.InB} }
 func (g *XOR) Outputs() []NetID { return []NetID{g.Out} }
+
+func (b *Builder) XOR(inA, inB NetID, width uint8) NetID {
+	out := b.AllocNet(width)
+
+	node := &XOR{InA: inA, InB: inB, Out: out}
+	b.AddNode(node)
+
+	return out
+}

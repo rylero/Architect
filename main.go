@@ -9,18 +9,20 @@ import (
 func main() {
 	b := library.NewBuilder()
 
-	inputA := b.Input(sim.CreateValue("10110010"), 8)
-	inputB := b.Input(sim.CreateValue("10011001"), 8)
+	inputA := b.Input(sim.CreateValue("1"), 1)
+	inputB := b.Input(sim.CreateValue("1"), 1)
+	inputC := b.Input(sim.CreateValue("1"), 1)
 
-	nand := b.NAND(inputA, inputB, 8)
+	sum, carry := b.FullAdder(inputA, inputB, inputC)
 
 	nl := b.Build()
 
 	simulator := sim.Simulator{NL: nl}
-	simulator.Probes = []sim.Probe{{Loc: nand, Name: "nand.out"}}
+	simulator.Probes = []sim.Probe{{Loc: sum, Name: "sum.out"}, {Loc: carry, Name: "carry.out"}}
 
 	simulator.Step()
 	probes := simulator.ReadProbes()
 
-	fmt.Println(probes["nand.out"]) // ~AND result: e.g., "01011011"
+	fmt.Println("sum", probes["sum.out"])
+	fmt.Println("carry", probes["carry.out"])
 }
