@@ -63,13 +63,13 @@ func (b *Builder) FullAdder(inA, inB, inC sim.NetID, width uint8) (sum, carry si
 	return ccSum, carry
 }
 
-func (b *Builder) RippleCarryAdder(inA, inB, cin sim.NetID, width uint8) (sum, cout sim.NetID) {
+func (b *Builder) RippleCarryAdder(inA, inB, cin sim.NetID, width uint8) (sum, carry sim.NetID) {
 	b.EnterScope("ripple")
 	defer b.ExitScope()
 
 	aBits := b.Split(inA, width)
 	bBits := b.Split(inB, width)
-	carry := cin
+	carry = cin
 
 	outputs := make([]sim.NetID, width)
 
@@ -85,4 +85,30 @@ func (b *Builder) RippleCarryAdder(inA, inB, cin sim.NetID, width uint8) (sum, c
 	sum = b.Join(outputs, width)
 
 	return sum, carry
+}
+
+/* Memory */
+func (b *Builder) SRLatchNOR(set, reset sim.NetID) (sim.NetID, sim.NetID) {
+	width := uint8(1)
+
+	q := b.AllocNamedNet(width, "Q")
+	qBar := b.AllocNamedNet(width, "QBar")
+
+	nor1Out := b.NOR(set, qBar, width)
+	nor2Out := b.NOR(reset, q, width)
+
+	b.WireInto(nor1Out, q)
+	b.WireInto(nor2Out, qBar)
+
+	return q, qBar
+}
+
+func (b *Builder) DLatch(d, en sim.NetID) (sim.NetID, sim.NetID) {
+	width := uint8(1)
+
+	dNot := b.NOT(d, width)
+	s := b.AND(en, d, width)
+	r := b.AND(en, dNot, width)
+
+	return b.SRLatchNOR(s, r)
 }

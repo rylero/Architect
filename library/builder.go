@@ -147,3 +147,11 @@ func (b *Builder) Join(ins []sim.NetID, width uint8) sim.NetID {
 	b.AddNode(node)
 	return out
 }
+
+func (g *AND) IsSequential() bool   { return false }
+func (g *OR) IsSequential() bool    { return false }
+func (g *NOT) IsSequential() bool   { return false }
+func (g *XOR) IsSequential() bool   { return false }
+func (g *WIRE) IsSequential() bool  { return false }
+func (s *Split) IsSequential() bool { return false }
+func (j *Join) IsSequential() bool  { return false }

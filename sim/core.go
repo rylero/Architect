@@ -22,6 +22,7 @@ type Net struct {
 
 type Node interface {
 	Eval(nets []Net)
+	IsSequential() bool
 }
 
 type NodeIO interface {
@@ -36,6 +37,9 @@ type NetList struct {
 	EvalOrder  []NodeID
 	ProbeNames map[NetID]string
 	Probes     []Probe
+
+	CombOrder []NodeID
+	SeqOrder  []NodeID
 }
 
 type Simulator struct {

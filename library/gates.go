@@ -2,6 +2,33 @@ package library
 
 import . "architect/sim"
 
+/* Wire */
+
+type WIRE struct {
+	In  NetID
+	Out NetID
+}
+
+func (w *WIRE) Eval(nets []Net) {
+	nets[w.Out].Val = nets[w.In].Val
+}
+
+func (w *WIRE) Inputs() []NetID  { return []NetID{w.In} }
+func (w *WIRE) Outputs() []NetID { return []NetID{w.Out} }
+
+func (b *Builder) Wire(in NetID, width uint8, name string) NetID {
+	target := b.AllocNamedNet(width, name)
+	node := &WIRE{In: in, Out: target}
+	b.AddNode(node)
+	return target
+}
+
+func (b *Builder) WireInto(in, out NetID) NetID {
+	node := &WIRE{In: in, Out: out}
+	b.AddNode(node)
+	return out
+}
+
 /* AND Gate */
 
 type AND struct {

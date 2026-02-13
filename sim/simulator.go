@@ -3,10 +3,30 @@ package sim
 import "fmt"
 
 func (s *Simulator) Step() {
-	for _, id := range s.NL.EvalOrder {
-		s.NL.Nodes[id].Eval(s.NL.Nets)
+	// Phase 1: Combinational stabilization (iterative eval)
+	maxIters := 32
+	for iter := 0; iter < maxIters; iter++ {
+		changed := false
+
+		for _, nid := range s.NL.CombOrder {
+			oldVal := s.NL.Nets[nid].Val
+
+			s.NL.Nodes[nid].Eval(s.NL.Nets)
+
+			if oldVal != s.NL.Nets[nid].Val {
+				changed = true
+			}
+		}
+
+		if !changed {
+			break
+		}
 	}
-	s.Cycle++
+
+	// Phase 2: Sequential once (latches settle in next comb iter)
+	for _, nid := range s.NL.SeqOrder {
+		s.NL.Nodes[nid].Eval(s.NL.Nets)
+	}
 }
 
 func FormatValue(val Value, width uint8) string {
